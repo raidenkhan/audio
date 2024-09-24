@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #101923;
+  --foreground: #ffffff;
+  --primary: #0d7cf2;
+  --secondary: #223549;
+  --text-secondary: #90accb;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "Space Grotesk", "Noto Sans", sans-serif;
+}
+
+
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
