@@ -54,7 +54,7 @@ const MainComponent = () => {
     return (
         <div className="bg-[#1E1717] min-h-screen">
         
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-8'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-4sm:p-8'>
                 <AudioRecorder 
                     recordings={recordings} 
                     setRecordings={setRecordings} 
