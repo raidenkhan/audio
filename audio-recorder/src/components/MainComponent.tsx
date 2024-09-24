@@ -61,7 +61,7 @@ const MainComponent = () => {
                     uploadedAudios={uploadedAudios}
                     setUploadedAudios={setUploadedAudios}
                     currentSlot={currentSlot}
-                    setCurrentSlot={setCurrentSlot}
+                    
                     nextSlot={nextSlot}
                     prevSlot={prevSlot}
                     activeRecordings={activeRecordings}

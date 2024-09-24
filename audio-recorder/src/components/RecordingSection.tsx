@@ -11,13 +11,12 @@ interface AudioRecorderProps {
     // socket: Socket;
     activeRecordings: boolean[];
     currentSlot: number;
-    setCurrentSlot: React.Dispatch<React.SetStateAction<number>>;
     nextSlot: () => void;
     prevSlot: () => void;
     clearRecording: (slot: number) => void;
 }
 
-const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings, uploadedAudios, setUploadedAudios, activeRecordings, currentSlot, setCurrentSlot, nextSlot, prevSlot, clearRecording }) => {
+const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings, uploadedAudios, setUploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording }) => {
     const [isRecording, setIsRecording] = useState<boolean[]>([false, false, false, false]);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const [recordingDurations, setRecordingDurations] = useState<number[]>([0, 0, 0, 0]);
@@ -132,21 +131,6 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         }
     };
 
-    const togglePlay = (slot: number) => {
-        if (audioRefs.current[slot]) {
-            if (isPlaying[slot]) {
-                audioRefs.current[slot]?.pause();
-            } else {
-                audioRefs.current[slot]?.play();
-            }
-            setIsPlaying((prev) => {
-                const newIsPlaying = [...prev];
-                newIsPlaying[slot] = !newIsPlaying[slot];
-                return newIsPlaying;
-            });
-        }
-    };
-
     return (
         <div className="bg-[#1E1717] p-8 rounded-2xl shadow-lg">
             <h2 className="text-3xl font-bold mb-8 text-white">Record a sound</h2>
@@ -166,6 +150,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                         className="w-full bg-transparent text-white text-xl focus:outline-none"
                                     />
                                     <div className="text-[#8A7575] mt-2">{formatTime(elapsedTime)}</div>
+                                    <div className="text-[#8A7575] mt-2">Duration: {formatTime(recordingDurations[slot])}</div>
                                 </div>
                                 <button
                                     className={`w-[27rem] py-4 rounded-full text-white text-xl font-semibold flex items-center justify-center ${
