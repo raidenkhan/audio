@@ -132,7 +132,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     };
 
     return (
-        <div className="bg-[#1E1717] p-8 rounded-2xl shadow-lg">
+        <div className="bg-[#1E1717] p-3 sm:p-8 rounded-2xl shadow-lg">
             <h2 className="text-3xl font-bold mb-8 text-white">Record a sound</h2>
             <div className="overflow-hidden">
                 <div 
@@ -181,7 +181,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                 <div className="mt-8">
                                     <h3 className="text-2xl font-bold mb-4 text-white">Upload audio files</h3>
                                     <div className="space-y-4">
-                                        <div className="bg-[#2C2121] p-4 rounded-xl flex items-center">
+                                        <div className="bg-[#2C2121] p-2 sm:p-4 rounded-xl flex items-center">
                                             <input 
                                                 type="file" 
                                                 accept="audio/*" 
@@ -199,7 +199,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                                 </div>
                                             </label>
                                         </div>
-                                        <div className="bg-[#2C2121] p-4 rounded-xl flex items-center">
+                                        <div className="bg-[#2C2121] p-2 sm:p-4 rounded-xl flex  items-center">
                                             <div className="w-8 h-8 bg-[#3D2E2E] rounded-lg flex items-center justify-center mr-4">
                                                 <ArrowUpTrayIcon className="w-5 h-5 text-white" />
                                             </div>
@@ -218,14 +218,14 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             <div className="flex justify-between mt-4">
                 <button 
                     onClick={prevSlot}
-                    className="px-4 py-2 bg-[#2C2121] text-white rounded-lg"
+                    className="py-2 bg-[#2C2121] text-white rounded-lg"
                 >
                     Previous
                 </button>
                 <span className="text-white">Slot {currentSlot + 1} / 4</span>
                 <button 
                     onClick={nextSlot}
-                    className="px-4 py-2 bg-[#2C2121] text-white rounded-lg"
+                    className=" py-2 bg-[#2C2121] text-white rounded-lg"
                 >
                     Next
                 </button>
