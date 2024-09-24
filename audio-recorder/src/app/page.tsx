@@ -1,5 +1,5 @@
-import RecordingSection from '@/components/RecordingSection'
-import AudioPlayer from '@/components/AudioPlayer'
+//import RecordingSection from '@/components/RecordingSection'
+//import AudioPlayer from '@/components/AudioPlayer'
 import MainComponent from '@/components/MainComponent'
 import '@/app/styles/globals.css'
 

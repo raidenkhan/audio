@@ -1,7 +1,7 @@
 "use client"
 import React, { useRef, useState, useEffect } from 'react'
-import { MicrophoneIcon, StopIcon, TrashIcon, PlayIcon, PauseIcon, ArrowUpTrayIcon } from '@heroicons/react/24/solid'
-import { Socket } from 'socket.io-client'
+import { MicrophoneIcon, StopIcon,  ArrowUpTrayIcon } from '@heroicons/react/24/solid'
+//import { Socket } from 'socket.io-client'
 
 interface AudioRecorderProps {
     recordings: (Blob | null)[];
