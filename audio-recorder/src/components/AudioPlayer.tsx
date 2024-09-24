@@ -22,10 +22,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     useEffect(() => {
         const currentAudio = uploadedAudios[currentSlot] || recordings[currentSlot];
-        if (currentAudio) {
+        if (currentAudio instanceof File) {
+            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/audio/${currentAudio.name}`;
+            setAudioUrl(url);
+        } else if (currentAudio instanceof Blob) {
             const url = URL.createObjectURL(currentAudio);
             setAudioUrl(url);
-            return () => URL.revokeObjectURL(url);
         } else {
             setAudioUrl(null);
         }

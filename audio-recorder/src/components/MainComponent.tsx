@@ -18,17 +18,32 @@ const MainComponent = () => {
         setCurrentSlot((prev) => (prev - 1 + 4) % 4);
     };
 
-    const clearRecording = (slot: number) => {
-        setRecordings((prev) => {
-            const newRecordings = [...prev];
-            newRecordings[slot] = null;
-            return newRecordings;
-        });
-        setUploadedAudios((prev) => {
-            const newUploadedAudios = [...prev];
-            newUploadedAudios[slot] = null;
-            return newUploadedAudios;
-        });
+    const clearRecording = async (slot: number) => {
+        const recording = recordings[slot];
+        if (recording) {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/${slot}`, {
+                    method: 'DELETE',
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete recording');
+                }
+
+                setRecordings((prev) => {
+                    const newRecordings = [...prev];
+                    newRecordings[slot] = null;
+                    return newRecordings;
+                });
+                setUploadedAudios((prev) => {
+                    const newUploadedAudios = [...prev];
+                    newUploadedAudios[slot] = null;
+                    return newUploadedAudios;
+                });
+            } catch (error) {
+                console.error('Error deleting recording:', error);
+            }
+        }
     };
 
     // Calculate activeRecordings

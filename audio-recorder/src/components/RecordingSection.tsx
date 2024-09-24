@@ -52,7 +52,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         formData.append('name', recordingName);
 
         try {
-            const response = await fetch('http://localhost:3001/api/recordings', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`, {
                 method: 'POST',
                 body: formData,
             });
