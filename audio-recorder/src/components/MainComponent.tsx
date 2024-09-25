@@ -2,13 +2,14 @@
 import React, { useState, useMemo } from 'react'
 import AudioRecorder from '@/components/RecordingSection'
 import AudioPlayer from '@/components/AudioPlayer'
-
-
+import DownloadPopup from '@/components/download-popup'
+import Button from "@/components/ui/button"
 
 const MainComponent = () => {
     const [recordings, setRecordings] = useState<(Blob | null)[]>([null, null, null, null]);
     const [uploadedAudios, setUploadedAudios] = useState<(File | null)[]>([null, null, null, null]);
     const [currentSlot, setCurrentSlot] = useState<number>(0);
+    const [isDownloadPopupOpen, setIsDownloadPopupOpen] = useState(false);
 
     const nextSlot = () => {
         setCurrentSlot((prev) => (prev + 1) % 4);
@@ -52,16 +53,24 @@ const MainComponent = () => {
     }, [recordings]);
 
     return (
-        <div className="bg-[#1E1717] min-h-screen">
-        
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-4sm:p-8'>
+        <div className="bg-[#1E1717] min-h-screen p-4 sm:p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-white">Audio Recorder</h1>
+                <Button 
+                    variant="outline" 
+                    className="bg-[#3a3131] text-white hover:bg-[#4a4141]"
+                    onClick={() => setIsDownloadPopupOpen(true)}
+                >
+                    View Recordings
+                </Button>
+            </div>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 <AudioRecorder 
                     recordings={recordings} 
                     setRecordings={setRecordings} 
                     uploadedAudios={uploadedAudios}
                     setUploadedAudios={setUploadedAudios}
                     currentSlot={currentSlot}
-                    
                     nextSlot={nextSlot}
                     prevSlot={prevSlot}
                     activeRecordings={activeRecordings}
@@ -76,6 +85,12 @@ const MainComponent = () => {
                     clearRecording={clearRecording}
                 />
             </div>
+            <DownloadPopup 
+                isOpen={isDownloadPopupOpen} 
+                onOpenChange={setIsDownloadPopupOpen}
+                recordings={recordings}
+                uploadedAudios={uploadedAudios}
+            />
         </div>
     )
 }

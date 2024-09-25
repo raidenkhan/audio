@@ -10,6 +10,8 @@ exports.createRecording = async (req, res) => {
       return res.status(400).json({ message: 'No audio file uploaded' });
     }
 
+    console.log('File received:', file);
+
     const recording = new Recording({
       name,
       duration,
@@ -17,8 +19,11 @@ exports.createRecording = async (req, res) => {
     });
 
     await recording.save();
+    console.log('Recording metadata saved:', recording);
+
     res.status(201).json(recording);
   } catch (error) {
+    console.error('Error creating recording:', error);
     res.status(500).json({ message: 'Error creating recording', error: error.message });
   }
 };
@@ -63,5 +68,41 @@ exports.deleteRecording = async (req, res) => {
     res.status(200).json({ message: 'Recording deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting recording', error: error.message });
+  }
+};
+
+exports.downloadRecording = async (req, res) => {
+  try {
+    const gfs = req.app.get('gfs');
+    if (!gfs) {
+      console.error('GridFS is not initialized');
+      return res.status(500).json({ message: 'Server error: GridFS not initialized' });
+    }
+
+    const filename = req.params.filename;
+    console.log(`Attempting to download file: ${filename}`);
+
+    const files = await gfs.find({ filename: filename }).toArray();
+    console.log(`Found ${files.length} files matching filename`);
+
+    if (!files || files.length === 0) {
+      console.log(`File not found: ${filename}`);
+      return res.status(404).json({ message: 'File not found' });
+    }
+
+    const file = files[0];
+    res.set('Content-Type', file.contentType);
+    res.set('Content-Disposition', `attachment; filename="${filename}"`);
+
+    const readstream = gfs.openDownloadStreamByName(filename);
+    readstream.on('error', (error) => {
+      console.error(`Error in readstream: ${error}`);
+      res.status(500).json({ message: 'Error downloading file', error: error.message });
+    });
+
+    readstream.pipe(res);
+  } catch (error) {
+    console.error('Error in downloadRecording:', error);
+    res.status(500).json({ message: 'Error downloading file', error: error.message });
   }
 };

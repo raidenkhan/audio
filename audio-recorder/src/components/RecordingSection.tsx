@@ -51,13 +51,18 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         formData.append('name', recordingName);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`, {
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`;
+            console.log('Attempting to save recording to:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
+                credentials: 'include', // Add this line
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save recording');
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
 
             const savedRecording = await response.json();

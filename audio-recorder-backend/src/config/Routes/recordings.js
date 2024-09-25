@@ -11,13 +11,7 @@ router.get('/', recordingController.getAllRecordings);
 router.patch('/:id/loop', recordingController.updateLoopStatus);
 router.delete('/:id', recordingController.deleteRecording);
 
-// Add a new route to serve audio files
-router.get('/audio/:filename', (req, res) => {
-  const { filename } = req.params;
-  const gfs = req.app.get('gfs');
-  
-  const readstream = gfs.openDownloadStreamByName(filename);
-  readstream.pipe(res);
-});
+// Update this route to use the controller
+router.get('/download/:filename', recordingController.downloadRecording);
 
 module.exports = router;

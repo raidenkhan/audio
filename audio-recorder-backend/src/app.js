@@ -2,34 +2,27 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
-//const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+const { GridFsStorage } = require('multer-gridfs-storage');
 const connectDB = require('./config/database');
 const recordingsRouter = require('./config/Routes/recordings');
-//const authRouter = require('./config/Routes/auth');
-
-// ... other code
-
 
 const app = express();
 const server = http.createServer(app);
-// const io = socketIo(server, {
-//   cors: {
-//     origin: "http://localhost:3000",
-//     methods: ["GET", "POST"]
-//   }
-// });
 
 const PORT = process.env.PORT || 3001;
 
+// Connect to MongoDB
 connectDB();
 
-app.use(cors());
+// CORS configuration with wildcard origin for debugging
+app.use(cors({
+  origin: '*', // WARNING: Only use this for debugging
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
-
-app.use('/api/recordings', recordingsRouter);
-
-const mongoose = require('mongoose');
-const { GridFsStorage } = require('multer-gridfs-storage');
 
 let gfs;
 
@@ -38,24 +31,23 @@ mongoose.connection.once('open', () => {
     bucketName: 'recordings'
   });
   app.set('gfs', gfs);
+  console.log('GridFS connected');
+
+  // Set up routes after GridFS is connected
+  app.use('/api/recordings', (req, res, next) => {
+    req.gfs = gfs;
+    next();
+  }, recordingsRouter);
 });
-
-// io.on('connection', (socket) => {
-//   console.log('New client connected');
-  
-//   socket.on('startRecording', (data) => {
-//     socket.broadcast.emit('recordingStarted', data);
-//   });
-
-//   socket.on('stopRecording', (data) => {
-//     socket.broadcast.emit('recordingStopped', data);
-//   });
-
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected');
-//   });
-// });
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something broke!', error: err.message });
+});
+
+module.exports = app;
