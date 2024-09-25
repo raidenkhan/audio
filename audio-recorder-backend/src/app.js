@@ -15,11 +15,12 @@ const PORT = process.env.PORT || 3001;
 // Connect to MongoDB
 connectDB();
 
-// CORS configuration with wildcard origin for debugging
+// CORS configuration
 app.use(cors({
-  origin: '*', // WARNING: Only use this for debugging
+  origin: '*', // Allow all origins temporarily
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
