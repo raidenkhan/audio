@@ -10,21 +10,24 @@ import {
 } from "@/components/ui/Dialog"
 import { ArrowDownTrayIcon, XMarkIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/solid'
 
-interface Recording {
-  _id: string
-  name: string
-  duration: number
-  filename: string
-}
+// interface Recording {
+//   _id: string
+//   name: string
+//   duration: number
+//   filename: string
+// }
+import { Recording } from '@/app/types/Recording';
 
 interface DownloadPopupProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   recordings: (Blob | null)[];
   uploadedAudios: (File | null)[];
+  onSelectRecording: (recording: Recording) => void;
 }
 
-export default function DownloadPopup({ isOpen, onOpenChange, recordings, uploadedAudios }: DownloadPopupProps) {
+export default function DownloadPopup({ isOpen, onOpenChange, recordings, uploadedAudios, onSelectRecording }: DownloadPopupProps) {
+ 
   const [serverRecordings, setServerRecordings] = useState<Recording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +44,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     try {
         console.log(`fetching recordings ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`);
+   
       if (!response.ok) {
         throw new Error('Failed to fetch recordings');
       }
@@ -81,11 +85,17 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const handlePlay = (recording: Recording) => {
+    console.log(recording)
+    onSelectRecording(recording);
+    onOpenChange(false);
+  };
+
   const allRecordings = useMemo(() => {
     const localRecordings = recordings
       .filter((rec): rec is Blob => rec !== null)
       .map((blob, index) => ({
-        _id: `local_${index}`,
+        id: `local_${index}`,
         name: `Recording ${index + 1}`,
         duration: 0, // You might want to calculate this
         filename: `recording_${index + 1}.webm`
@@ -94,7 +104,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     const uploadedRecordings = uploadedAudios
       .filter((file): file is File => file !== null)
       .map((file, index) => ({
-        _id: `uploaded_${index}`,
+        id: `uploaded_${index}`,
         name: file.name,
         duration: 0, // You might want to calculate this
         filename: file.name
@@ -102,6 +112,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
 
     return [...serverRecordings, ...localRecordings, ...uploadedRecordings];
   }, [serverRecordings, recordings, uploadedAudios]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -126,7 +137,9 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
           ) : allRecordings.length === 0 ? (
             <p>No recordings found.</p>
           ) : (
+            
             <ul className="space-y-4">
+            
               {allRecordings.map((recording) => (
                 <li key={recording._id} className="flex items-center justify-between bg-[#2a2424] p-4 rounded-lg">
                   <div className="flex items-center space-x-4">
@@ -143,10 +156,19 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
                       variant="ghost"
                       size="icon"
                       className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handleDownload(recording.filename, recording.name)}
+                      onClick={() => handlePlay(recording as Recording)}
+                    >
+                      <PlayIcon className="h-5 w-5" />
+                      <span className="sr-only">Play {recording.filename}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-white hover:bg-[#3a3131]"
+                      onClick={() => handleDownload(recording.filename, recording.filename)}
                     >
                       <ArrowDownTrayIcon className="h-5 w-5" />
-                      <span className="sr-only">Download {recording.name}</span>
+                      <span className="sr-only">Download {recording.filename}</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -155,7 +177,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
                       onClick={() => handleDelete(recording._id)}
                     >
                       <TrashIcon className="h-5 w-5" />
-                      <span className="sr-only">Delete {recording.name}</span>
+                      <span className="sr-only">Delete {recording.filename}</span>
                     </Button>
                   </div>
                 </li>

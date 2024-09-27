@@ -4,19 +4,16 @@ const mongoose = require('mongoose');
 
 // ... existing code ...
 
-const encodeFile = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
+const encodeFile = (buffer) => {
+  return buffer.toString('base64');
 };
 
-const decodeFile = (base64String) => {
-  const [, data] = base64String.split(',');
+function decodeFile(data) {
+  if (!data) {
+    throw new Error('Invalid input: data is undefined or null');
+  }
   return Buffer.from(data, 'base64');
-};
+}
 
 // ... existing code ...
 

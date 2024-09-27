@@ -4,12 +4,14 @@ import AudioRecorder from '@/components/RecordingSection'
 import AudioPlayer from '@/components/AudioPlayer'
 import DownloadPopup from '@/components/download-popup'
 import Button from "@/components/ui/button"
+import { Recording } from '../app/types/Recording';
 
 const MainComponent = () => {
     const [recordings, setRecordings] = useState<(Blob | null)[]>([null, null, null, null]);
     const [uploadedAudios, setUploadedAudios] = useState<(File | null)[]>([null, null, null, null]);
     const [currentSlot, setCurrentSlot] = useState<number>(0);
     const [isDownloadPopupOpen, setIsDownloadPopupOpen] = useState(false);
+    const [selectedServerRecording, setSelectedServerRecording] = useState<Recording | null>(null);
 
     const nextSlot = () => {
         setCurrentSlot((prev) => (prev + 1) % 4);
@@ -52,6 +54,12 @@ const MainComponent = () => {
         return recordings.map(recording => recording !== null);
     }, [recordings]);
 
+    const handleSelectRecording = (recording: Recording) => {
+        setSelectedServerRecording(recording);
+        // Optionally, you might want to set the current slot to a specific value or a new "server" slot
+        // setCurrentSlot(4); // Assuming 4 is a new slot for server recordings
+    };
+
     return (
         <div className="bg-[#1E1717] min-h-screen p-4 sm:p-8">
             <div className="flex justify-between items-center mb-6">
@@ -83,6 +91,7 @@ const MainComponent = () => {
                     nextSlot={nextSlot}
                     prevSlot={prevSlot}
                     clearRecording={clearRecording}
+                    selectedServerRecording={selectedServerRecording}
                 />
             </div>
             <DownloadPopup 
@@ -90,6 +99,7 @@ const MainComponent = () => {
                 onOpenChange={setIsDownloadPopupOpen}
                 recordings={recordings}
                 uploadedAudios={uploadedAudios}
+                onSelectRecording={(recording: Recording) => handleSelectRecording(recording)}
             />
         </div>
     )

@@ -7,22 +7,22 @@ const connectDB = require('./config/database');
 const recordingsRouter = require('./config/Routes/recordings');
 
 const app = express();
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3001;
 
 // Connect to MongoDB
 connectDB();
-
-// CORS configuration
-app.use(cors({
-  origin: '*', // Allow all origins temporarily
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-app.use(express.json());
 
 // Remove gfs-related code
 app.use('/api/recordings', recordingsRouter);

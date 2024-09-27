@@ -4,7 +4,7 @@ const RecordingSchema = new mongoose.Schema({
   name: String,
   duration: Number,
   filename: String,
-  audioData: String, // This will store the base64 encoded audio data
+  audioData: String,
   loopStatus: {
     type: Boolean,
     default: false

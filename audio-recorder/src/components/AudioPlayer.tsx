@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { PlayIcon, PauseIcon, ArrowPathIcon } from '@heroicons/react/24/solid'
+import { Recording } from '@/app/types/Recording';
 
 interface AudioPlayerProps {
     recordings: (Blob | null)[];
@@ -8,10 +9,11 @@ interface AudioPlayerProps {
     nextSlot: () => void;
     prevSlot: () => void;
     clearRecording: (slot: number) => void;
+    selectedServerRecording: Recording | null;
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ 
-    recordings, uploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording 
+    recordings, uploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording, selectedServerRecording
 }) => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -21,17 +23,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const [isLooping, setIsLooping] = useState(false);
 
     useEffect(() => {
-        const currentAudio = uploadedAudios[currentSlot] || recordings[currentSlot];
+        const currentAudio = selectedServerRecording || uploadedAudios[currentSlot] || recordings[currentSlot];
         if (currentAudio instanceof File) {
-            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/audio/${currentAudio.name}`;
+            const url = URL.createObjectURL(currentAudio);
             setAudioUrl(url);
         } else if (currentAudio instanceof Blob) {
             const url = URL.createObjectURL(currentAudio);
             setAudioUrl(url);
+        } else if (selectedServerRecording) {
+            // Use the converted MP3 URL for server recordings
+            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/download/${selectedServerRecording.filename}.mp3`;
+            setAudioUrl(url);
         } else {
             setAudioUrl(null);
         }
-    }, [currentSlot, recordings, uploadedAudios]);
+
+        return () => {
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+        };
+    }, [currentSlot, recordings, uploadedAudios, selectedServerRecording]);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -75,6 +85,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             if (isPlaying) {
                 audioRef.current.pause();
             } else {
+                
                 audioRef.current.play();
             }
             setIsPlaying(!isPlaying);
@@ -103,7 +114,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         }
     };
 
-    const currentAudio = uploadedAudios[currentSlot] || recordings[currentSlot];
+    const currentAudio = selectedServerRecording || uploadedAudios[currentSlot] || recordings[currentSlot];
 
     return (
         <div className="bg-[#2C2121] p-6 rounded-2xl shadow-lg">
@@ -118,9 +129,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                                 <div className="w-16 h-16 bg-gradient-to-br from-[#FF8686] to-[#FF4545] rounded-lg mr-4"></div>
                                 <div>
                                     <h3 className="text-xl font-bold text-white">
-                                        {(uploadedAudios[slot] || recordings[slot]) ? `Recording ${slot + 1}` : 'No audio'}
+                                        {selectedServerRecording ? selectedServerRecording.filename : 
+                                         (uploadedAudios[slot] || recordings[slot]) ? `Recording ${slot + 1}` : 'No audio'}
                                     </h3>
-                                    <p className="text-[#8A7575]">Slot {slot + 1}</p>
+                                    <p className="text-[#8A7575]">
+                                        {selectedServerRecording ? 'Server Recording' : `Slot ${slot + 1}`}
+                                    </p>
                                 </div>
                             </div>
                             <input

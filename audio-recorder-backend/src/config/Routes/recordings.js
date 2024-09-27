@@ -1,17 +1,22 @@
 const express = require('express');
 const multer = require('multer');
-const { storage } = require('../utils/gridfsStorage');
 const recordingController = require('../controllers/recordingController');
 
 const router = express.Router();
-const upload = multer({ storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
-router.post('/', upload.single('audio'), recordingController.createRecording);
+router.post('/', (req, res, next) => {
+    console.log("eee")
+    console.log(req.body);
+    // console.log('Received POST request to /api/recordings');
+    // console.log('Request headers:', req.headers);
+    // console.log('Request body:', req.body);
+    next();
+}, upload.single('audio'), recordingController.createRecording);
+
 router.get('/', recordingController.getAllRecordings);
 router.patch('/:id/loop', recordingController.updateLoopStatus);
 router.delete('/:id', recordingController.deleteRecording);
-
-// Update this route to use the controller
 router.get('/download/:filename', recordingController.downloadRecording);
 
 module.exports = router;

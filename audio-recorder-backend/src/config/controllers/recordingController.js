@@ -1,10 +1,12 @@
 const Recording = require('../models/Recording');
 const { encodeFile, decodeFile } = require('../utils/gridfsStorage');
+const ffmpeg = require('fluent-ffmpeg');
+const stream = require('stream');
 
 exports.createRecording = async (req, res) => {
   try {
     const { name, duration } = req.body;
-    const file = req.file;
+    const file = req.file;W
 
     if (!file) {
       return res.status(400).json({ message: 'No audio file uploaded' });
@@ -13,11 +15,11 @@ exports.createRecording = async (req, res) => {
     console.log('File received:', file);
 
     // Encode the file to base64
-    const base64Audio = await encodeFile(file.buffer);
+    const base64Audio = encodeFile(file.buffer);
 
     const recording = new Recording({
       name,
-      duration,
+      duration: parseInt(duration),
       filename: file.originalname,
       audioData: base64Audio
     });
@@ -35,9 +37,20 @@ exports.createRecording = async (req, res) => {
 exports.getAllRecordings = async (req, res) => {
   try {
     const recordings = await Recording.find().sort({ createdAt: -1 });
-    res.json(recordings);
+    
+    // Convert base64 audio data to .ogg buffers
+    const processedRecordings = recordings.map(recording => {
+      const audioBuffer = decodeFile(recording.audioData);
+      return {
+        ...recording.toObject(),
+        audioData: audioBuffer
+      };
+    });
+
+    res.json(processedRecordings);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching recordings:', error);
+    res.status(500).json({ message: 'Error fetching recordings', error: error.message });
   }
 };
 
@@ -86,9 +99,25 @@ exports.downloadRecording = async (req, res) => {
 
     const audioBuffer = decodeFile(recording.audioData);
 
+    // Create a readable stream from the audio buffer
+    const readableStream = new stream.Readable();
+    readableStream.push(audioBuffer);
+    readableStream.push(null);
+
+    // Set appropriate headers
     res.set('Content-Type', 'audio/mpeg');
-    res.set('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(audioBuffer);
+    res.set('Content-Disposition', `attachment; filename="${filename}.mp3"`);
+
+    // Convert the audio to MP3 format using ffmpeg
+    ffmpeg(readableStream)
+      .audioCodec('libmp3lame')
+      .format('mp3')
+      .on('error', (err) => {
+        console.error('Error converting audio:', err);
+        res.status(500).json({ message: 'Error converting audio', error: err.message });
+      })
+      .pipe(res);
+
   } catch (error) {
     console.error('Error in downloadRecording:', error);
     res.status(500).json({ message: 'Error downloading file', error: error.message });

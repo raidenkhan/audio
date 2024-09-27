@@ -45,19 +45,17 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     };
 
     const saveRecording = async (blob: Blob, duration: number, slot: number) => {
-        const formData = new FormData();
-        formData.append('audio', blob, `${recordingName}-${slot}.ogg`);
-        formData.append('duration', duration.toString());
-        formData.append('name', recordingName);
-
         try {
+            const formData = new FormData();
+            formData.append('audio', blob, `${recordingName}-${slot}.ogg`);
+            formData.append('duration', duration.toString());
+            formData.append('name', recordingName);
+
             const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`;
-            console.log('Attempting to save recording to:', apiUrl);
-            
+        
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
-                credentials: 'include', // Add this line
             });
 
             if (!response.ok) {
@@ -71,7 +69,6 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             console.error('Error saving recording:', error);
         }
     };
-
     const startRecording = async (slot: number) => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
