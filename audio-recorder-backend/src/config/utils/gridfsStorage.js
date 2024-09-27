@@ -1,43 +1,23 @@
 const mongoose = require('mongoose');
-const { GridFsStorage } = require('multer-gridfs-storage');
 
-const storage = new GridFsStorage({
-  url: process.env.MONGODB_URI,
-  options: { useNewUrlParser: true, useUnifiedTopology: true },
-  file: (req, file) => {
-    return {
-      bucketName: 'recordings',
-      filename: `${Date.now()}-${file.originalname}`
-    };
-  }
-});
+// Remove GridFsStorage import as we won't be using it anymore
 
-let gfs;
+// ... existing code ...
 
-mongoose.connection.once('open', () => {
-    gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: 'recordings'
-    });
+const encodeFile = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
   });
-  
-  const deleteFile = (filename) => {
-    return new Promise((resolve, reject) => {
-      gfs.find({ filename: filename }).toArray((err, files) => {
-        if (err) {
-          reject(err);
-        }
-        if (!files || files.length === 0) {
-          reject(new Error('File not found'));
-        }
-        gfs.delete(files[0]._id, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-    });
-  };
-  
-  module.exports = { storage, deleteFile };
+};
+
+const decodeFile = (base64String) => {
+  const [, data] = base64String.split(',');
+  return Buffer.from(data, 'base64');
+};
+
+// ... existing code ...
+
+module.exports = { encodeFile, decodeFile };

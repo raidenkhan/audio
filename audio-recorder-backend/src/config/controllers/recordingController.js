@@ -1,5 +1,5 @@
 const Recording = require('../models/Recording');
-const { deleteFile } = require('../utils/gridfsStorage');
+const { encodeFile, decodeFile } = require('../utils/gridfsStorage');
 
 exports.createRecording = async (req, res) => {
   try {
@@ -12,10 +12,14 @@ exports.createRecording = async (req, res) => {
 
     console.log('File received:', file);
 
+    // Encode the file to base64
+    const base64Audio = await encodeFile(file.buffer);
+
     const recording = new Recording({
       name,
       duration,
-      filename: file.filename
+      filename: file.originalname,
+      audioData: base64Audio
     });
 
     await recording.save();
@@ -73,34 +77,18 @@ exports.deleteRecording = async (req, res) => {
 
 exports.downloadRecording = async (req, res) => {
   try {
-    const gfs = req.app.get('gfs');
-    if (!gfs) {
-      console.error('GridFS is not initialized');
-      return res.status(500).json({ message: 'Server error: GridFS not initialized' });
-    }
-
     const filename = req.params.filename;
-    console.log(`Attempting to download file: ${filename}`);
+    const recording = await Recording.findOne({ filename: filename });
 
-    const files = await gfs.find({ filename: filename }).toArray();
-    console.log(`Found ${files.length} files matching filename`);
-
-    if (!files || files.length === 0) {
-      console.log(`File not found: ${filename}`);
+    if (!recording) {
       return res.status(404).json({ message: 'File not found' });
     }
 
-    const file = files[0];
-    res.set('Content-Type', file.contentType);
+    const audioBuffer = decodeFile(recording.audioData);
+
+    res.set('Content-Type', 'audio/mpeg');
     res.set('Content-Disposition', `attachment; filename="${filename}"`);
-
-    const readstream = gfs.openDownloadStreamByName(filename);
-    readstream.on('error', (error) => {
-      console.error(`Error in readstream: ${error}`);
-      res.status(500).json({ message: 'Error downloading file', error: error.message });
-    });
-
-    readstream.pipe(res);
+    res.send(audioBuffer);
   } catch (error) {
     console.error('Error in downloadRecording:', error);
     res.status(500).json({ message: 'Error downloading file', error: error.message });
