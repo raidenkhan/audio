@@ -13,6 +13,7 @@ const MainComponent = () => {
     const [isDownloadPopupOpen, setIsDownloadPopupOpen] = useState(false);
     const [selectedServerRecording, setSelectedServerRecording] = useState<Recording | null>(null);
     const [recordingNames, setRecordingNames] = useState<string[]>(['', '', '', '']);
+    const [recordingDurations, setRecordingDurations] = useState<number[]>([0, 0, 0, 0]);
 
     const nextSlot = () => {
         setRecordingNames(prevNames => {
@@ -29,18 +30,18 @@ const MainComponent = () => {
     const prevSlot = () => {
         setCurrentSlot((prev) => (prev - 1 + 4) % 4);
     };
-
+//fix this part
     const clearRecording = async (slot: number) => {
         const recording = recordings[slot];
         if (recording) {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/${slot}`, {
-                    method: 'DELETE',
-                });
+                // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/${slot}`, {
+                //     method: 'DELETE',
+                // });
 
-                if (!response.ok) {
-                    throw new Error('Failed to delete recording');
-                }
+                // if (!response.ok) {
+                //     throw new Error('Failed to delete recording');
+                // }
 
                 setRecordings((prev) => {
                     const newRecordings = [...prev];
@@ -101,6 +102,8 @@ const MainComponent = () => {
                     activeRecordings={activeRecordings}
                     clearRecording={clearRecording}
                     //setRecordingName={setRecordingName}
+                    recordingDurations={recordingDurations}
+                    setRecordingDurations={setRecordingDurations}
                 />
                 <AudioPlayer 
                     recordings={recordings} 
@@ -111,6 +114,7 @@ const MainComponent = () => {
                     clearRecording={clearRecording}
                     selectedServerRecording={selectedServerRecording}
                     recordingNames={recordingNames}
+                    recordingDurations={recordingDurations}
                 />
             </div>
             <DownloadPopup 

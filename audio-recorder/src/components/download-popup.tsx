@@ -127,7 +127,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
   };
 
   const handlePlay = (recording: Recording) => {
-    console.log(recording)
+    //console.log(recording)
     onSelectRecording(recording);
     onOpenChange(false);
   };
@@ -140,8 +140,8 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
         filename: `Recording ${index + 1}`,
         duration: 0,
         audioData: '',
+        url: URL.createObjectURL(blob),
         createdAt: new Date()
-      
       }));
 
     const uploadedRecordings = uploadedAudios
@@ -151,14 +151,11 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
         filename: file.name,
         duration: 0,
         audioData: '',
+        url: URL.createObjectURL(file),
         createdAt: new Date()
       }));
 
-    setAllRecordings([...serverRecs, ...localRecordings, ...uploadedRecordings].map(rec => ({
-      ...rec,
-      url: rec.audioData ? URL.createObjectURL(new Blob([rec.audioData], { type: 'audio/ogg' })) : '',
-      createdAt: rec.createdAt || new Date()
-    })));
+    setAllRecordings([...serverRecs, ...localRecordings, ...uploadedRecordings]);
   };
 
   return (

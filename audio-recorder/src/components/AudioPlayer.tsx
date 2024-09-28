@@ -12,6 +12,7 @@ interface AudioPlayerProps {
     clearRecording: (slot: number) => void;
     selectedServerRecording: Recording | null;
     recordingNames: string[];
+    recordingDurations: number[];
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ 
@@ -22,14 +23,53 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     prevSlot, 
     clearRecording,
     selectedServerRecording,
-    recordingNames
+    recordingNames,
+    recordingDurations
 }) => {
+    
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [hasAudio, setHasAudio] = useState(false);
+useEffect(()=>{
+    console.log("from use effect");
+    console.log(recordings);
+   // const audio=audioRef.current;
+   resetAudioPlayer();
+   
+    
+},[recordings])
+
+const resetAudioPlayer = () => {
+    setIsLoading(true);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setHasAudio(false);
+
+    let src = '';
+    if (recordings[currentSlot]) {
+        // Prioritize new recordings
+        src = URL.createObjectURL(recordings[currentSlot]);
+        console.log("src1",src);
+    }
+
+    if (src && audioRef.current) {
+        audioRef.current.src = src;
+        console.log("src3",src);
+        audioRef.current.load();
+        audioRef.current.onloadedmetadata = () => {
+            console.log("duration",audioRef);
+            setDuration(recordingDurations[currentSlot]);
+            setIsLoading(false);
+            setHasAudio(true);
+        };
+    } else {
+        setIsLoading(false);
+    }
+};
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -63,6 +103,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }, []);
 
     useEffect(() => {
+      
         const audio = audioRef.current;
         if (!audio) return;
 
@@ -74,7 +115,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
         let src = '';
         if (selectedServerRecording) {
-            src = selectedServerRecording.url;
+            //console.log(selectedServerRecording);
+            src = `data:audio/ogg;base64,${selectedServerRecording.audioData}`;
+            
         } else {
             const currentRecording = recordings[currentSlot];
             const currentUploadedAudio = uploadedAudios[currentSlot];
@@ -92,12 +135,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         } else {
             setIsLoading(false);
         }
-    }, [currentSlot, recordings, uploadedAudios, selectedServerRecording]);
+    }, [currentSlot,  uploadedAudios, selectedServerRecording]);
 
     const togglePlayPause = () => {
+      
         const audio = audioRef.current;
-        if (!audio || !hasAudio) return;
-
+  
+        if (!audio || !hasAudio) 
+            
+            return;
+            console.log("src2",audio);
         if (isPlaying) {
             audio.pause();
         } else {
@@ -106,6 +153,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 setIsPlaying(false);
             });
         }
+        setIsPlaying(!isPlaying);
     };
 
     const formatTime = (time: number) => {

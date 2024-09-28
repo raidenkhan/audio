@@ -14,13 +14,15 @@ interface AudioRecorderProps {
     nextSlot: () => void;
     prevSlot: () => void;
     clearRecording: (slot: number) => void;
+    recordingDurations: number[];
+    setRecordingDurations: React.Dispatch<React.SetStateAction<number[]>>;
    // setRecordingName: (slot: number, name: string) => void;
 }
 
-const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings, uploadedAudios, setUploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording }) => {
+const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings, uploadedAudios, setUploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording, recordingDurations, setRecordingDurations }) => {
     const [isRecording, setIsRecording] = useState<boolean[]>([false, false, false, false]);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const [recordingDurations, setRecordingDurations] = useState<number[]>([0, 0, 0, 0]);
+   // const [recordingDurations, setRecordingDurations] = useState<number[]>([0, 0, 0, 0]);
     const startTimeRef = useRef<number>(0);
     //const [isPlaying, setIsPlaying] = useState<boolean[]>([false, false, false, false]);
     //const audioRefs = useRef<(HTMLAudioElement | null)[]>([null, null, null, null]);
@@ -38,6 +40,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         } else {
             setElapsedTime(0);
         }
+        //console.log("isRecording",recordingDurations);
         return () => clearInterval(interval);
     }, [isRecording, currentSlot]);
 
@@ -117,6 +120,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             setRecordingDurations(prev => {
                 const newDurations = [...prev];
                 newDurations[slot] = elapsedTime;
+                console.log("newDurations",newDurations);
                 return newDurations;
             });
           
