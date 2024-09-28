@@ -39,6 +39,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allRecordings, setAllRecordings] = useState<Recording[]>([]);
+ 
 
   useEffect(() => {
     if (isOpen) {
@@ -52,13 +53,14 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     try {
         //console.log(`fetching recordings ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`);
-   
+      
       if (!response.ok) {
         throw new Error('Failed to fetch recordings');
       }
       const data = await response.json();
       setServerRecordings(data);
-     
+      console.log(data)
+      setAllRecordings(data);
    
       updateAllRecordings(data);
     } catch (error) {
@@ -66,7 +68,8 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
       console.error('Error fetching recordings:', error);
     } finally {
       setIsLoading(false);
-      setAllRecordings(serverRecordings);
+      
+     // setAllRecordings(serverRecordings);
       //console.log(allRecordings)
     }
   };
@@ -110,6 +113,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
       // Trigger download
       document.body.appendChild(a);
       a.click();
+      toast.success("Download started")
       
       // Clean up
       window.URL.revokeObjectURL(url);
@@ -182,7 +186,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
               </div>
             ) : error ? (
               <p className="text-red-500">{error}</p>
-            ) : allRecordings.length === 0 ? (
+            ) : allRecordings.length === 0  ? (
               <p>No recordings found.</p>
             ) : (
               

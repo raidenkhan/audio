@@ -156,7 +156,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
 
     return (
         <div className="bg-[#1E1717] p-3 sm:p-8 rounded-2xl shadow-lg">
-            <h2 className="text-3xl font-bold mb-8 text-white">Record a sound</h2>
+            <h2 className="text-xl sm:text-3xl font-bold mb-8 text-white">Record a sound</h2>
             <div className="overflow-hidden">
                 <div 
                     className="flex transition-transform duration-300 ease-in-out" 
@@ -176,7 +176,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                     <div className="text-[#8A7575] mt-2">Duration: {formatTime(recordingDurations[currentSlot])}</div>
                                 </div>
                                 <button
-                                    className={`w-[27rem] py-4 rounded-full text-white text-xl font-semibold flex items-center justify-center ${
+                                    className={` w-[15rem] sm:w-[27rem] py-4 rounded-full text-white text-xl font-semibold flex items-center justify-center ${
                                         isRecording[slot] ? 'bg-[#FF4545]' : 'bg-[#FF0000] hover:bg-[#FF4545]'
                                     }`}
                                     onClick={() => isRecording[slot] ? stopRecording(slot) : startRecording(slot)}
@@ -195,7 +195,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                 </button>
                                 {(recordings[slot] || uploadedAudios[slot]) && (
                                     <button
-                                        className="w-[27rem] py-2 rounded-full text-white text-lg font-semibold bg-[#3D2E2E] hover:bg-[#4D3E3E]"
+                                        className="w-[20rem] sm:w-[27rem] py-2 rounded-full text-white text-lg font-semibold bg-[#3D2E2E] hover:bg-[#4D3E3E]"
                                         onClick={() => clearRecording(slot)}
                                     >
                                         Clear Recording
@@ -241,14 +241,14 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             <div className="flex justify-between mt-4">
                 <button 
                     onClick={prevSlot}
-                    className="py-2 bg-[#2C2121] text-white rounded-lg"
+                    className="p-2 bg-[#2C2121] text-white rounded-lg"
                 >
                     Previous
                 </button>
                 <span className="text-white">Slot {currentSlot + 1} / 4</span>
                 <button 
                     onClick={nextSlot}
-                    className=" py-2 bg-[#2C2121] text-white rounded-lg"
+                    className=" p-2 bg-[#2C2121] text-white rounded-lg"
                 >
                     Next
                 </button>

@@ -34,14 +34,7 @@ const MainComponent = () => {
     const clearRecording = async (slot: number) => {
         const recording = recordings[slot];
         if (recording) {
-            try {
-                // const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/${slot}`, {
-                //     method: 'DELETE',
-                // });
-
-                // if (!response.ok) {
-                //     throw new Error('Failed to delete recording');
-                // }
+            
 
                 setRecordings((prev) => {
                     const newRecordings = [...prev];
@@ -53,9 +46,12 @@ const MainComponent = () => {
                     newUploadedAudios[slot] = null;
                     return newUploadedAudios;
                 });
-            } catch (error) {
-                console.error('Error deleting recording:', error);
-            }
+                setRecordingDurations((prev) => {
+                    const newDurations = [...prev];
+                    newDurations[slot] = 0;
+                    return newDurations;
+                });
+          
         }
     };
 
@@ -79,9 +75,9 @@ const MainComponent = () => {
     // };
 
     return (
-        <div className="bg-[#1E1717] min-h-screen p-4 sm:p-8">
+        <div className="bg-[#1E1717] min-h-screen p-2 sm:p-8">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-white">Audio Recorder</h1>
+                <h1 className="text-xl sm:text-3xl font-bold text-white">Audio Recorder</h1>
                 <Button 
                     variant="outline" 
                     className="bg-[#3a3131] text-white hover:bg-[#4a4141]"
