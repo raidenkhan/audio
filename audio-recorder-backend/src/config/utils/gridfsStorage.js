@@ -9,9 +9,9 @@ const encodeFile = (buffer) => {
 };
 
 function decodeFile(data) {
-  if (!data) {
-    throw new Error('Invalid input: data is undefined or null');
-  }
+  // if (!data) {
+  //   throw new Error('Invalid input: data is undefined or null');
+  // }
   return Buffer.from(data, 'base64');
 }
 

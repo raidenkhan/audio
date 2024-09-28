@@ -14,6 +14,7 @@ interface AudioRecorderProps {
     nextSlot: () => void;
     prevSlot: () => void;
     clearRecording: (slot: number) => void;
+   // setRecordingName: (slot: number, name: string) => void;
 }
 
 const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings, uploadedAudios, setUploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording }) => {
@@ -25,6 +26,8 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     //const audioRefs = useRef<(HTMLAudioElement | null)[]>([null, null, null, null]);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [recordingName, setRecordingName] = useState<string>('Untitled recording');
+    const [actualDurations, setActualDurations] = useState<number[]>([0, 0, 0, 0]);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -44,11 +47,16 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     };
 
-    const saveRecording = async (blob: Blob, duration: number, slot: number) => {
+    const saveRecording = async (blob: Blob, slot: number) => {
         try {
             const formData = new FormData();
             formData.append('audio', blob, `${recordingName}-${slot}.ogg`);
-            formData.append('duration', duration.toString());
+            
+            // Use the elapsed time as the duration
+            
+         
+           
+            formData.append('duration', recordingDurations[slot].toString());
             formData.append('name', recordingName);
 
             const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`;
@@ -69,6 +77,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             console.error('Error saving recording:', error);
         }
     };
+
     const startRecording = async (slot: number) => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -78,19 +87,14 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
             const chunks: Blob[] = [];
             mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
             mediaRecorder.onstop = () => {
+               
                 const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
                 setRecordings((prev) => {
                     const newRecordings = [...prev];
                     newRecordings[slot] = blob;
                     return newRecordings;
                 });
-                const duration = Date.now() - startTimeRef.current;
-                setRecordingDurations((prev) => {
-                    const newDurations = [...prev];
-                    newDurations[slot] = duration;
-                    return newDurations;
-                });
-                saveRecording(blob, duration, slot);
+                saveRecording(blob, slot);
                 //socket.emit('stopRecording', { slot });
             };
             mediaRecorder.start();
@@ -109,11 +113,20 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     const stopRecording = (slot: number) => {
         if (mediaRecorderRef.current) {
             mediaRecorderRef.current.stop();
+            const duration = elapsedTime;
+            setRecordingDurations(prev => {
+                const newDurations = [...prev];
+                newDurations[slot] = elapsedTime;
+                return newDurations;
+            });
+          
             setIsRecording((prev) => {
                 const newIsRecording = [...prev];
                 newIsRecording[slot] = false;
                 return newIsRecording;
             });
+            // Don't reset the elapsed time here
+            // The elapsed time will be used when saving the recording
         }
     };
 
@@ -133,6 +146,10 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
         }
     };
 
+    const handleRecordingNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRecordingName( e.target.value);
+    };
+
     return (
         <div className="bg-[#1E1717] p-3 sm:p-8 rounded-2xl shadow-lg">
             <h2 className="text-3xl font-bold mb-8 text-white">Record a sound</h2>
@@ -148,11 +165,11 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                                     <input
                                         type="text"
                                         value={recordingName}
-                                        onChange={(e) => setRecordingName(e.target.value)}
+                                        onChange={handleRecordingNameChange}
                                         className="w-full bg-transparent text-white text-xl focus:outline-none"
                                     />
                                     <div className="text-[#8A7575] mt-2">{formatTime(elapsedTime)}</div>
-                                    <div className="text-[#8A7575] mt-2">Duration: {formatTime(recordingDurations[slot])}</div>
+                                    <div className="text-[#8A7575] mt-2">Duration: {formatTime(recordingDurations[currentSlot])}</div>
                                 </div>
                                 <button
                                     className={`w-[27rem] py-4 rounded-full text-white text-xl font-semibold flex items-center justify-center ${
@@ -232,6 +249,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
                     Next
                 </button>
             </div>
+            <audio ref={audioRef} style={{ display: 'none' }} />
         </div>
     )
 }

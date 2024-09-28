@@ -1,12 +1,12 @@
 const Recording = require('../models/Recording');
 const { encodeFile, decodeFile } = require('../utils/gridfsStorage');
-const ffmpeg = require('fluent-ffmpeg');
+//const ffmpeg = require('fluent-ffmpeg');
 const stream = require('stream');
 
 exports.createRecording = async (req, res) => {
   try {
     const { name, duration } = req.body;
-    const file = req.file;W
+    const file = req.file;
 
     if (!file) {
       return res.status(400).json({ message: 'No audio file uploaded' });
@@ -38,12 +38,16 @@ exports.getAllRecordings = async (req, res) => {
   try {
     const recordings = await Recording.find().sort({ createdAt: -1 });
     
-    // Convert base64 audio data to .ogg buffers
     const processedRecordings = recordings.map(recording => {
-      const audioBuffer = decodeFile(recording.audioData);
+      // Only include necessary metadata, not the full audio data
       return {
-        ...recording.toObject(),
-        audioData: audioBuffer
+        id: recording._id,
+        name: recording.name,
+        duration: recording.duration,
+        filename: recording.filename,
+        createdAt: recording.createdAt,
+        audioData: recording.audioData,
+        // Include other necessary fields, but exclude audioData
       };
     });
 
@@ -73,13 +77,14 @@ exports.updateLoopStatus = async (req, res) => {
 };
 
 exports.deleteRecording = async (req, res) => {
+  console.log("dfsde")
   try {
     const recording = await Recording.findById(req.params.id);
     if (!recording) {
       return res.status(404).json({ message: 'Recording not found' });
     }
 
-    await deleteFile(recording.filename);
+    //await deleteFile(recording.filename);
     await Recording.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: 'Recording deleted successfully' });

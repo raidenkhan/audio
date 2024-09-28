@@ -9,15 +9,19 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog"
 import { ArrowDownTrayIcon, XMarkIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/solid'
+import { base64ToBlob } from '@/app/utils/audioUtils'; // You'll need to create this utility function
 
-// interface Recording {
-//   _id: string
-//   name: string
-//   duration: number
-//   filename: string
-// }
-import { Recording } from '@/app/types/Recording';
+//import { Recording } from '@/app/types/Recording';
 
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
+interface Recording {
+  id: string;
+  filename: string;
+  duration: number;
+  audioData: string;
+  url: string;
+  createdAt: Date ;
+}
 interface DownloadPopupProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -31,6 +35,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
   const [serverRecordings, setServerRecordings] = useState<Recording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allRecordings, setAllRecordings] = useState<Recording[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,11 +55,16 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
       }
       const data = await response.json();
       setServerRecordings(data);
+     
+   
+      updateAllRecordings(data);
     } catch (error) {
       setError('Error fetching recordings');
       console.error('Error fetching recordings:', error);
     } finally {
       setIsLoading(false);
+      setAllRecordings(serverRecordings);
+      //console.log(allRecordings)
     }
   };
 
@@ -66,17 +76,42 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
       if (!response.ok) {
         throw new Error('Failed to delete recording');
       }
-      setServerRecordings(serverRecordings.filter(rec => rec._id !== id));
+      // Remove the deleted recording from the serverRecordings state
+      setServerRecordings(prevRecordings => prevRecordings.filter(rec => rec.id !== id));
+      // Remove the deleted recording from the allRecordings list
+      const updatedAllRecordings = allRecordings.filter(rec => rec.id !== id);
+      // Update the state that's used to render the list
+      setAllRecordings(updatedAllRecordings);
     } catch (error) {
       console.error('Error deleting recording:', error);
       // Optionally, show an error message to the user
+      setError('Failed to delete recording. Please try again.');
     }
   };
 
-  const handleDownload = (filename: string, name: string) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://audio-2-qp7v.onrender.com';
-    const downloadUrl = `${apiUrl}/api/recordings/download/${encodeURIComponent(filename)}`;
-    window.open(downloadUrl, '_blank');
+  const handleDownload = async (filename: string, audioData: string) => {
+    try {
+      // Convert base64 to Blob
+      const blob = base64ToBlob(audioData, 'audio/ogg');
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename.replace(/\.[^/.]+$/, "") + '.ogg'; // Ensure .ogg extension
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      // Optionally, show an error message to the user
+    }
   };
 
   const formatDuration = (duration: number) => {
@@ -91,30 +126,37 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     onOpenChange(false);
   };
 
-  const allRecordings = useMemo(() => {
+  const updateAllRecordings = (serverRecs: Recording[]) => {
     const localRecordings = recordings
       .filter((rec): rec is Blob => rec !== null)
       .map((blob, index) => ({
         id: `local_${index}`,
-        name: `Recording ${index + 1}`,
-        duration: 0, // You might want to calculate this
-        filename: `recording_${index + 1}.webm`
+        filename: `Recording ${index + 1}`,
+        duration: 0,
+        audioData: '',
+        createdAt: new Date()
+      
       }));
 
     const uploadedRecordings = uploadedAudios
       .filter((file): file is File => file !== null)
       .map((file, index) => ({
         id: `uploaded_${index}`,
-        name: file.name,
-        duration: 0, // You might want to calculate this
-        filename: file.name
+        filename: file.name,
+        duration: 0,
+        audioData: '',
+        createdAt: new Date()
       }));
 
-    return [...serverRecordings, ...localRecordings, ...uploadedRecordings];
-  }, [serverRecordings, recordings, uploadedAudios]);
-
+    setAllRecordings([...serverRecs, ...localRecordings, ...uploadedRecordings].map(rec => ({
+      ...rec,
+      url: rec.audioData ? URL.createObjectURL(new Blob([rec.audioData], { type: 'audio/ogg' })) : '',
+      createdAt: rec.createdAt || new Date()
+    })));
+  };
 
   return (
+
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] bg-[#1c1919] text-white border-[#3a3131]">
         <DialogHeader>
@@ -131,7 +173,9 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
         </DialogHeader>
         <div className="mt-4 overflow-y-auto max-h-[60vh] rounded-md border border-[#3a3131] p-4">
           {isLoading ? (
-            <p>Loading recordings...</p>
+            <div className="flex justify-center items-center h-40">
+              <ArrowPathIcon className="h-8 w-8 text-white animate-spin" />
+            </div>
           ) : error ? (
             <p className="text-red-500">{error}</p>
           ) : allRecordings.length === 0 ? (
@@ -141,13 +185,13 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
             <ul className="space-y-4">
             
               {allRecordings.map((recording) => (
-                <li key={recording._id} className="flex items-center justify-between bg-[#2a2424] p-4 rounded-lg">
+                <li key={recording.id} className="flex items-center justify-between bg-[#2a2424] p-4 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-[#3a3131] rounded-md flex items-center justify-center">
                       <PlayIcon className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-white text-lg">{recording.name}</h3>
+                      <h3 className="font-medium text-white text-lg">{recording.filename}</h3>
                       <p className="text-sm text-gray-400">{formatDuration(recording.duration)}</p>
                     </div>
                   </div>
@@ -165,7 +209,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
                       variant="ghost"
                       size="icon"
                       className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handleDownload(recording.filename, recording.filename)}
+                      onClick={() => handleDownload(recording.filename, recording.audioData)}
                     >
                       <ArrowDownTrayIcon className="h-5 w-5" />
                       <span className="sr-only">Download {recording.filename}</span>
@@ -174,7 +218,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
                       variant="ghost"
                       size="icon"
                       className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handleDelete(recording._id)}
+                      onClick={() => handleDelete(recording.id)}
                     >
                       <TrashIcon className="h-5 w-5" />
                       <span className="sr-only">Delete {recording.filename}</span>

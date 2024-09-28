@@ -1,7 +1,8 @@
 export interface Recording {
-    _id: string;
+    id: string;
     filename: string;
     duration: number;
+    audioData: string;
     url: string;
     createdAt: Date;
   }

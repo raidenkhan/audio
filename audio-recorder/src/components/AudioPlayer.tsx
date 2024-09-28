@@ -10,10 +10,12 @@ interface AudioPlayerProps {
     prevSlot: () => void;
     clearRecording: (slot: number) => void;
     selectedServerRecording: Recording | null;
+    recordingNames: string[];
 }
 
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ 
-    recordings, uploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording, selectedServerRecording
+    recordings, uploadedAudios, currentSlot, nextSlot, prevSlot, clearRecording, selectedServerRecording, 
+    recordingNames,
 }) => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -21,21 +23,44 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const [duration, setDuration] = useState(0);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [isLooping, setIsLooping] = useState(false);
+    const [fileName, setFileName] = useState<string>('');
 
     useEffect(() => {
-        const currentAudio = selectedServerRecording || uploadedAudios[currentSlot] || recordings[currentSlot];
-        if (currentAudio instanceof File) {
+        const currentAudio = recordings[currentSlot] || uploadedAudios[currentSlot] || selectedServerRecording;
+        console.log("currentAudio", currentAudio);
+
+        if (currentAudio instanceof File || currentAudio instanceof Blob) {
             const url = URL.createObjectURL(currentAudio);
             setAudioUrl(url);
-        } else if (currentAudio instanceof Blob) {
-            const url = URL.createObjectURL(currentAudio);
-            setAudioUrl(url);
+            setFileName(`Recording ${currentSlot + 1}`);
         } else if (selectedServerRecording) {
-            // Use the converted MP3 URL for server recordings
-            const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/download/${selectedServerRecording.filename}.mp3`;
-            setAudioUrl(url);
+            if (selectedServerRecording.audioData) {
+                // Convert base64 to Blob
+                const byteCharacters = atob(selectedServerRecording.audioData);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                setAudioUrl(url);
+            } else {
+                // Fallback to the MP3 URL if audioData is not available
+                const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings/download/${selectedServerRecording.filename}.mp3`;
+                setAudioUrl(url);
+            }
         } else {
             setAudioUrl(null);
+            setFileName('');
+        }
+
+        // Reset playback state
+        setIsPlaying(false);
+        setCurrentTime(0);
+        setDuration(0);
+        if (audioRef.current) {
+            audioRef.current.load();
         }
 
         return () => {
@@ -71,20 +96,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         }
     }, [audioUrl, isLooping]);
 
-    useEffect(() => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-        setDuration(0);
-        if (audioRef.current) {
-            audioRef.current.load();
-        }
-    }, [currentSlot, recordings, uploadedAudios]);
-
     const togglePlayPause = () => {
         if (audioRef.current) {
             if (isPlaying) {
                 audioRef.current.pause();
             } else {
+    
                 
                 audioRef.current.play();
             }
@@ -116,6 +133,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     const currentAudio = selectedServerRecording || uploadedAudios[currentSlot] || recordings[currentSlot];
 
+    const handleSave = () => {
+        //onSave();
+        setFileName('');
+    };
+
+    const getDisplayName = () => {
+        if (selectedServerRecording) {
+            return selectedServerRecording.filename;
+        }
+        const currentName = recordingNames[currentSlot];
+        return currentName ? `Slot ${currentSlot + 1} - ${currentName}` : `Slot ${currentSlot + 1}`;
+    };
+
     return (
         <div className="bg-[#2C2121] p-6 rounded-2xl shadow-lg">
             <div className="overflow-hidden">
@@ -129,8 +159,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                                 <div className="w-16 h-16 bg-gradient-to-br from-[#FF8686] to-[#FF4545] rounded-lg mr-4"></div>
                                 <div>
                                     <h3 className="text-xl font-bold text-white">
-                                        {selectedServerRecording ? selectedServerRecording.filename : 
-                                         (uploadedAudios[slot] || recordings[slot]) ? `Recording ${slot + 1}` : 'No audio'}
+                                        {audioUrl ? getDisplayName() : 'No audio'}
                                     </h3>
                                     <p className="text-[#8A7575]">
                                         {selectedServerRecording ? 'Server Recording' : `Slot ${slot + 1}`}
@@ -197,6 +226,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     className="px-4 py-2 bg-[#3D2E2E] text-white rounded-lg"
                 >
                     Next
+                </button>
+                <button 
+                    onClick={handleSave}
+                    className="px-4 py-2 bg-[#3D2E2E] text-white rounded-lg"
+                >
+                    Save
                 </button>
             </div>
             {audioUrl && (

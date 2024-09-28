@@ -12,6 +12,7 @@ const MainComponent = () => {
     const [currentSlot, setCurrentSlot] = useState<number>(0);
     const [isDownloadPopupOpen, setIsDownloadPopupOpen] = useState(false);
     const [selectedServerRecording, setSelectedServerRecording] = useState<Recording | null>(null);
+    const [recordingNames, setRecordingNames] = useState<string[]>(['', '', '', '']);
 
     const nextSlot = () => {
         setCurrentSlot((prev) => (prev + 1) % 4);
@@ -60,6 +61,14 @@ const MainComponent = () => {
         // setCurrentSlot(4); // Assuming 4 is a new slot for server recordings
     };
 
+    // const setRecordingName = (slot: number, name: string) => {
+    //     setRecordingNames(prev => {
+    //         const newNames = [...prev];
+    //         newNames[slot] = name;
+    //         return newNames;
+    //     });
+    // };
+
     return (
         <div className="bg-[#1E1717] min-h-screen p-4 sm:p-8">
             <div className="flex justify-between items-center mb-6">
@@ -83,6 +92,7 @@ const MainComponent = () => {
                     prevSlot={prevSlot}
                     activeRecordings={activeRecordings}
                     clearRecording={clearRecording}
+                    //setRecordingName={setRecordingName}
                 />
                 <AudioPlayer 
                     recordings={recordings} 
@@ -92,6 +102,7 @@ const MainComponent = () => {
                     prevSlot={prevSlot}
                     clearRecording={clearRecording}
                     selectedServerRecording={selectedServerRecording}
+                    recordingNames={recordingNames}
                 />
             </div>
             <DownloadPopup 

@@ -21,7 +21,7 @@ audio-recorder-backend/node_modules
 # misc
 .DS_Store
 *.pem
-
+audio-recorder/.next
 # debug
 npm-debug.log*
 yarn-debug.log*
