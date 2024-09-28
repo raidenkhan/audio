@@ -11,7 +11,8 @@ export const Dialog: React.FC<DialogProps> = ({ children, open, onOpenChange }) 
 
   useEffect(() => {
     setIsOpen(open);
-  }, [open]);
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   if (!isOpen) return null;
 
@@ -24,7 +25,7 @@ export const Dialog: React.FC<DialogProps> = ({ children, open, onOpenChange }) 
   );
 };
 
-export const DialogTrigger: React.FC<{ children: ReactNode; asChild?: boolean }> = ({ children, asChild }) => {
+export const DialogTrigger: React.FC<{ children: ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
 

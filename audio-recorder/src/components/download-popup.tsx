@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Button from "@/components/ui/button"
 import {
   Dialog,
@@ -9,11 +9,14 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog"
 import { ArrowDownTrayIcon, XMarkIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/solid'
-import { base64ToBlob } from '@/app/utils/audioUtils'; // You'll need to create this utility function
+import { base64ToBlob } from '@/app/utils/audioUtils'; 
 
 //import { Recording } from '@/app/types/Recording';
 
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
+
 interface Recording {
   id: string;
   filename: string;
@@ -82,10 +85,13 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
       const updatedAllRecordings = allRecordings.filter(rec => rec.id !== id);
       // Update the state that's used to render the list
       setAllRecordings(updatedAllRecordings);
+      
+      // Add toast notification for successful deletion
+      toast.success('Recording deleted successfully');
     } catch (error) {
       console.error('Error deleting recording:', error);
       // Optionally, show an error message to the user
-      setError('Failed to delete recording. Please try again.');
+      toast.error('Failed to delete recording. Please try again.');
     }
   };
 
@@ -156,80 +162,82 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
   };
 
   return (
-
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] bg-[#1c1919] text-white border-[#3a3131]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white">Your Recordings</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 text-white hover:bg-[#3a3131]"
-            onClick={() => onOpenChange(false)}
-          >
-            <XMarkIcon className="h-6 w-6" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </DialogHeader>
-        <div className="mt-4 overflow-y-auto max-h-[60vh] rounded-md border border-[#3a3131] p-4">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <ArrowPathIcon className="h-8 w-8 text-white animate-spin" />
-            </div>
-          ) : error ? (
-            <p className="text-red-500">{error}</p>
-          ) : allRecordings.length === 0 ? (
-            <p>No recordings found.</p>
-          ) : (
-            
-            <ul className="space-y-4">
-            
-              {allRecordings.map((recording) => (
-                <li key={recording.id} className="flex items-center justify-between bg-[#2a2424] p-4 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-[#3a3131] rounded-md flex items-center justify-center">
-                      <PlayIcon className="h-6 w-6 text-white" />
+    <>
+      <Toaster position="top-right" />
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] bg-[#1c1919] text-white border-[#3a3131]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-white">Your Recordings</DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4 text-white hover:bg-[#3a3131]"
+              onClick={() => onOpenChange(false)}
+            >
+              <XMarkIcon className="h-6 w-6" />
+              <span className="sr-only">Close</span>
+            </Button>
+          </DialogHeader>
+          <div className="mt-4 overflow-y-auto max-h-[60vh] rounded-md border border-[#3a3131] p-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-40">
+                <ArrowPathIcon className="h-8 w-8 text-white animate-spin" />
+              </div>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : allRecordings.length === 0 ? (
+              <p>No recordings found.</p>
+            ) : (
+              
+              <ul className="space-y-4">
+              
+                {allRecordings.map((recording) => (
+                  <li key={recording.id} className="flex items-center justify-between bg-[#2a2424] p-4 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-[#3a3131] rounded-md flex items-center justify-center">
+                        <PlayIcon className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-white text-lg">{recording.filename}</h3>
+                        <p className="text-sm text-gray-400">{formatDuration(recording.duration)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-white text-lg">{recording.filename}</h3>
-                      <p className="text-sm text-gray-400">{formatDuration(recording.duration)}</p>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-[#3a3131]"
+                        onClick={() => handlePlay(recording as Recording)}
+                      >
+                        <PlayIcon className="h-5 w-5" />
+                        <span className="sr-only">Play {recording.filename}</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-[#3a3131]"
+                        onClick={() => handleDownload(recording.filename, recording.audioData)}
+                      >
+                        <ArrowDownTrayIcon className="h-5 w-5" />
+                        <span className="sr-only">Download {recording.filename}</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-white hover:bg-[#3a3131]"
+                        onClick={() => handleDelete(recording.id)}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                        <span className="sr-only">Delete {recording.filename}</span>
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handlePlay(recording as Recording)}
-                    >
-                      <PlayIcon className="h-5 w-5" />
-                      <span className="sr-only">Play {recording.filename}</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handleDownload(recording.filename, recording.audioData)}
-                    >
-                      <ArrowDownTrayIcon className="h-5 w-5" />
-                      <span className="sr-only">Download {recording.filename}</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-[#3a3131]"
-                      onClick={() => handleDelete(recording.id)}
-                    >
-                      <TrashIcon className="h-5 w-5" />
-                      <span className="sr-only">Delete {recording.filename}</span>
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

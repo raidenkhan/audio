@@ -140,7 +140,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     const getDisplayName = () => {
         if (selectedServerRecording) {
-            return selectedServerRecording.filename;
+            return selectedServerRecording.filename || fileName;
         }
         const currentName = recordingNames[currentSlot];
         return currentName ? `Slot ${currentSlot + 1} - ${currentName}` : `Slot ${currentSlot + 1}`;

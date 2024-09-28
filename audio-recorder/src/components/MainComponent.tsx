@@ -15,6 +15,14 @@ const MainComponent = () => {
     const [recordingNames, setRecordingNames] = useState<string[]>(['', '', '', '']);
 
     const nextSlot = () => {
+        setRecordingNames(prevNames => {
+            const newNames = [...prevNames];
+            const emptyIndex = newNames.findIndex(name => name === '');
+            if (emptyIndex !== -1) {
+                newNames[emptyIndex] = `Recording ${emptyIndex + 1}`;
+            }
+            return newNames;
+        });
         setCurrentSlot((prev) => (prev + 1) % 4);
     };
 

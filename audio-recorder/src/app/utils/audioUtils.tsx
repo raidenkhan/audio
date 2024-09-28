@@ -1,4 +1,4 @@
-export function base64ToBlob(base64: string, mimeType: string): Blob {
+export function base64ToBlob(base64: string, mimeType: string): Blob  {
     try {
         // Remove potential data URL prefix
         const base64Data = base64.replace(/^data:.*,/, '');
@@ -11,8 +11,10 @@ export function base64ToBlob(base64: string, mimeType: string): Blob {
         }
         
         return new Blob([byteArray], { type: mimeType });
-    } catch (error :any) {
-        console.error('Error converting base64 to Blob:', error);
-        throw new Error('Failed to convert base64 to Blob: ' + error.message);
     }
+     catch (error :unknown) {
+        console.error('Error converting base64 to Blob:', error);
+        //throw new Error('Failed to convert base64 to Blob: ' + error.message);
+    }
+    return new Blob();
 }
