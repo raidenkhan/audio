@@ -29,13 +29,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasAudio, setHasAudio] = useState(false);
 
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
         const updateTime = () => setCurrentTime(audio.currentTime);
-        const handleLoadedMetadata = () => setDuration(audio.duration);
+        const handleLoadedMetadata = () => {
+            setDuration(audio.duration);
+            setIsLoading(false);
+        };
         const handleCanPlay = () => setIsLoading(false);
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
@@ -64,29 +68,33 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         setCurrentTime(0);
         setDuration(0);
 
+        let src = '';
         if (selectedServerRecording) {
-            audio.src = selectedServerRecording.url;
+            src = selectedServerRecording.url;
         } else {
             const currentRecording = recordings[currentSlot];
             const currentUploadedAudio = uploadedAudios[currentSlot];
 
             if (currentRecording) {
-                audio.src = URL.createObjectURL(currentRecording);
+                src = URL.createObjectURL(currentRecording);
             } else if (currentUploadedAudio) {
-                audio.src = URL.createObjectURL(currentUploadedAudio);
-            } else {
-                audio.src = '';
+                src = URL.createObjectURL(currentUploadedAudio);
             }
         }
 
-        audio.load();
+        if (src) {
+            audio.src = src;
+            setHasAudio(true);
+            audio.load();
+        } else {
+            setHasAudio(false);
+            setIsLoading(false);
+        }
     }, [currentSlot, recordings, uploadedAudios, selectedServerRecording]);
 
     const togglePlayPause = () => {
         const audio = audioRef.current;
-        if (!audio) return;
-
-        if (isLoading) return;
+        if (!audio || isLoading || !hasAudio) return;
 
         if (isPlaying) {
             audio.pause();
