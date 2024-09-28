@@ -27,7 +27,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     useEffect(() => {
         const currentAudio = recordings[currentSlot] || uploadedAudios[currentSlot] || selectedServerRecording;
-        console.log("currentAudio", currentAudio);
+        //console.log("currentAudio", currentAudio);
 
         if (currentAudio instanceof File || currentAudio instanceof Blob) {
             const url = URL.createObjectURL(currentAudio);

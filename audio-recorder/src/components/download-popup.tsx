@@ -50,7 +50,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
     setIsLoading(true);
     setError(null);
     try {
-        console.log(`fetching recordings ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`)
+        //console.log(`fetching recordings ${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/recordings`);
    
       if (!response.ok) {
