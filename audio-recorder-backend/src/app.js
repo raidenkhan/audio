@@ -10,7 +10,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000'||'https://audio-recorder-update.vercel.app',
+  origin: 'https://audio-recorder-update.vercel.app',
   credentials: true,
   optionsSuccessStatus: 200
 };
