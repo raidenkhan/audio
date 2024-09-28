@@ -40,7 +40,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             setDuration(audio.duration);
             setIsLoading(false);
         };
-        const handleCanPlay = () => setIsLoading(false);
+        const handleCanPlay = () => {
+            setIsLoading(false);
+            setHasAudio(true);
+        };
         const handlePlay = () => setIsPlaying(true);
         const handlePause = () => setIsPlaying(false);
 
@@ -67,6 +70,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         setIsPlaying(false);
         setCurrentTime(0);
         setDuration(0);
+        setHasAudio(false);
 
         let src = '';
         if (selectedServerRecording) {
@@ -84,17 +88,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
         if (src) {
             audio.src = src;
-            setHasAudio(true);
             audio.load();
         } else {
-            setHasAudio(false);
             setIsLoading(false);
         }
     }, [currentSlot, recordings, uploadedAudios, selectedServerRecording]);
 
     const togglePlayPause = () => {
         const audio = audioRef.current;
-        if (!audio || isLoading || !hasAudio) return;
+        if (!audio || !hasAudio) return;
 
         if (isPlaying) {
             audio.pause();
