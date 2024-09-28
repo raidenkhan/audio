@@ -26,7 +26,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     //const audioRefs = useRef<(HTMLAudioElement | null)[]>([null, null, null, null]);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [recordingName, setRecordingName] = useState<string>('Untitled recording');
-    const [actualDurations, setActualDurations] = useState<number[]>([0, 0, 0, 0]);
+    //const [actualDurations, setActualDurations] = useState<number[]>([0, 0, 0, 0]);
     const audioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
@@ -113,7 +113,7 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({ recordings, setRecordings
     const stopRecording = (slot: number) => {
         if (mediaRecorderRef.current) {
             mediaRecorderRef.current.stop();
-            const duration = elapsedTime;
+           // const duration = elapsedTime;
             setRecordingDurations(prev => {
                 const newDurations = [...prev];
                 newDurations[slot] = elapsedTime;

@@ -66,7 +66,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         return () => {
             if (audioUrl) URL.revokeObjectURL(audioUrl);
         };
-    }, [currentSlot, recordings, uploadedAudios, selectedServerRecording]);
+    }, [currentSlot, recordings, uploadedAudios, selectedServerRecording,audioUrl]);
 
     useEffect(() => {
         const audio = audioRef.current;
