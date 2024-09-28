@@ -35,7 +35,7 @@ interface DownloadPopupProps {
 
 export default function DownloadPopup({ isOpen, onOpenChange, recordings, uploadedAudios, onSelectRecording }: DownloadPopupProps) {
  
-  const [serverRecordings, setServerRecordings] = useState<Recording[]>([]);
+  //const [serverRecordings, setServerRecordings] = useState<Recording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allRecordings, setAllRecordings] = useState<Recording[]>([]);
@@ -58,8 +58,8 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
         throw new Error('Failed to fetch recordings');
       }
       const data = await response.json();
-      setServerRecordings(data);
-      console.log(data)
+      //setServerRecordings(data);
+      //console.log(data)
       setAllRecordings(data);
    
       updateAllRecordings(data);
@@ -83,7 +83,7 @@ export default function DownloadPopup({ isOpen, onOpenChange, recordings, upload
         throw new Error('Failed to delete recording');
       }
       // Remove the deleted recording from the serverRecordings state
-      setServerRecordings(prevRecordings => prevRecordings.filter(rec => rec.id !== id));
+      //setServerRecordings(prevRecordings => prevRecordings.filter(rec => rec.id !== id));
       // Remove the deleted recording from the allRecordings list
       const updatedAllRecordings = allRecordings.filter(rec => rec.id !== id);
       // Update the state that's used to render the list
